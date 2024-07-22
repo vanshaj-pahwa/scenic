@@ -12,4 +12,4 @@ Scenic is a web application designed to provide comprehensive details about movi
 
 ---
 
-Sequel: Where every click opens a new world of entertainment!
+Scenic: Where every click opens a new world of entertainment!
