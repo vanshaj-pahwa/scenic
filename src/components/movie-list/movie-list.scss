@@ -1,0 +1,12 @@
+@use "../../scss/breakpoint" as *;
+
+.movie-list {
+  padding: 20px 0;
+
+  .slick-slide {
+    padding: 0 10px;
+  }
+}
+.slick-prev:before, .slick-next:before {
+    color: #00925d !important;
+}

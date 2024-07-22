@@ -1,0 +1,120 @@
+@use "../../scss/" as *;
+
+.video-player-container {
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+    height: 0;
+    overflow: hidden;
+    max-width: 100%;
+    background: black;
+    border-radius: 16px;
+  }
+  
+  .video-player-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    border-radius: 16px;
+  }
+
+  .server-container {
+    background-color: black;
+    text-align: center;
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: 16px;
+  }
+
+  .server-card-container {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  .server-card {
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    box-shadow: 2px solid #00925D;
+    margin-top: 0.6rem;
+  }
+  
+  .server-card.selected {
+    background-color: #00925D;
+    color: white;
+    border-color: #00925D;
+  }
+
+  .movie-content__poster__img {
+    position: relative;
+    background-position: top;
+    background-repeat: no-repeat;
+    background-size: cover;
+    padding-top: 160%;
+    border-radius: $border-radius;
+    margin-bottom: 1rem;
+
+    .btn {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        background-color: $black;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        border-radius: $border-radius;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+        &:hover::before {
+            opacity: 0.8;
+        }
+
+        &:hover .btn {
+            transform: translate(-50%, -50%) scale(1);
+        }
+    }
+}
+
+.poster-container {
+.poster-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  
+  .gradient-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.7));
+  }
+
+  .btn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    z-index: 2; /* Ensure play icon is above the gradient */
+  }
+}
+
+  
