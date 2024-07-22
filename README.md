@@ -1,6 +1,6 @@
-**Sequel: Your gateway to endless entertainment universe**
+**Scenic: Your gateway to endless entertainment universe**
 
-Sequel is a web application designed to provide comprehensive details about movies and TV series using the TMDB API. Whether you're looking for the latest blockbuster or a hidden gem, Sequel has you covered. Additionally, Sequel offers streaming options based on available servers and the ability to watch trailers, giving you a complete entertainment experience.
+Scenic is a web application designed to provide comprehensive details about movies and TV series using the TMDB API. Whether you're looking for the latest blockbuster or a hidden gem, Scenic has you covered. Additionally, Scenic offers streaming options based on available servers and the ability to watch trailers, giving you a complete entertainment experience.
 
 ## Features
 
