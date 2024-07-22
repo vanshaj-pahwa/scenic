@@ -7,6 +7,25 @@
     padding: 0 10px;
   }
 }
-.slick-prev:before, .slick-next:before {
-    color: #00925d !important;
+.slick-prev:before,
+.slick-next:before {
+  color: #00925d !important;
+}
+
+.slick-next {
+  @include mobile {
+    right: -18px !important;
+  }
+  @include mobile {
+    right: -18px !important;
+  }
+}
+
+.slick-prev {
+  @include mobile {
+    left: -18px !important;
+  }
+  @include tablet {
+    left: -18px !important;
+  }
 }
