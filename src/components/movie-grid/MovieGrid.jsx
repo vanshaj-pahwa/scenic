@@ -119,7 +119,7 @@ const MovieSearch = props => {
         <div className="movie-search">
             <Input
                 type="text"
-                placeholder="Search Movies"
+                placeholder={`Search ${category[props.category] === 'tv' ? 'Series' : 'Movies'}`}
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
             />

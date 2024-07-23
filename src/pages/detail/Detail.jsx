@@ -7,6 +7,7 @@ import CastList from "./CastList";
 import MovieList from "../../components/movie-list/MovieList";
 import VideoPlayer from "./VideoPlayer";
 import Button from "../../components/button/Button";
+import SeriesVideoPlayer from "./SeriesVideoPlayer/SeriesVideoPlayer";
 
 const Detail = () => {
   const { category, id } = useParams();
@@ -27,6 +28,8 @@ const Detail = () => {
       videoPlayerRef.current.scrollIntoView({ behavior: "smooth" });
     }
   };
+
+  console.log(item);
 
   return (
     <>
@@ -76,7 +79,8 @@ const Detail = () => {
           </div>
           <div className="container">
             <div className="section mb-3" ref={videoPlayerRef}>
-              <VideoPlayer id={item.id} title={item.title} movie={item} />
+              {!item.seasons ? <VideoPlayer id={item.id} title={item.title} movie={item} /> :
+              <SeriesVideoPlayer id={item.id} title={item.title} series={item} />}
             </div>
             <div className="section mb-3">
               <div className="section__header mb-2">
