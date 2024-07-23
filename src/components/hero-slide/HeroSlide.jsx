@@ -2,14 +2,12 @@ import React, { useState, useEffect, useRef } from "react";
 import SwiperCore from "swiper";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay } from "swiper/modules";
-import Button, { OutlineButton } from "../button/Button";
-import Modal, { ModalContent } from "../modal/Modal";
-import tmdbApi, { category, movieType } from "../../api/tmdbApi";
+import Button from "../button/Button";
+import tmdbApi, { movieType } from "../../api/tmdbApi";
 import apiConfig from "../../api/apiConfig";
 import "./hero-slide.scss";
 import { useNavigate } from "react-router";
 import { PlayIcon } from "../../assets/icons/PlayIcon";
-import { InfoIcon } from "../../assets/icons/InfoIcon";
 
 const HeroSlide = () => {
   SwiperCore.use([Autoplay]);
@@ -52,87 +50,41 @@ const HeroSlide = () => {
           </SwiperSlide>
         ))}
       </Swiper>
-      {movieItems.map((item, i) => (
-        <TrailerModal key={i} item={item} />
-      ))}
     </div>
   );
 };
 
 const HeroSlideItem = (props) => {
-    let navigate = useNavigate();
-    const item = props.item;
-    const [isHovered, setIsHovered] = useState(false);
-    const [trailerUrl, setTrailerUrl] = useState("");
-  
-    const background = apiConfig.originalImage(
-      item.backdrop_path ? item.backdrop_path : item.poster_path
-    );
-  
-    const fetchTrailer = async () => {
-      try {
-        const videos = await tmdbApi.getVideos(category.movie, item.id);
-        if (videos.results.length > 0) {
-          const videoKey = videos.results[0].key;
-          setTrailerUrl(`https://www.youtube.com/embed/${videoKey}?autoplay=1&mute=1`);
-        }
-      } catch (error) {
-        console.error("Error fetching trailer:", error);
-      }
-    };
-  
-    useEffect(() => {
-      if (isHovered) {
-        fetchTrailer();
-      } else {
-        setTrailerUrl("");
-      }
-    }, [isHovered]);
-  
-    return (
-      <div
-        className={`hero-slide__item ${props.className}`}
-        style={{ backgroundImage: `url(${background})` }}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        <div className="hero-slide__item__content container">
-          <div className="hero-slide__item__content__info">
-            <h2 className="title">{item.title}</h2>
-            <div className="overview">{item.overview}</div>
-            <div className="btns">
-              <Button onClick={() => navigate("/movie/" + item.id)} icon={<PlayIcon />}>
-                Play now
-              </Button>
-              <OutlineButton icon={<InfoIcon />} >More Info</OutlineButton>
-            </div>
-          </div>
-          <div className="hero-slide__item__content__poster">
-              <img src={apiConfig.w500Image(item.poster_path)} alt="" />
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-const TrailerModal = (props) => {
+  let navigate = useNavigate();
   const item = props.item;
 
-  const iframeRef = useRef(null);
-
-  const onClose = () => iframeRef.current.setAttribute("src", "");
+  const background = apiConfig.originalImage(
+    item.backdrop_path ? item.backdrop_path : item.poster_path
+  );
 
   return (
-    <Modal active={false} id={`modal_${item.id}`}>
-      <ModalContent onClose={onClose}>
-        <iframe
-          ref={iframeRef}
-          width="100%"
-          height="500px"
-          title="trailer"
-        ></iframe>
-      </ModalContent>
-    </Modal>
+    <div
+      className={`hero-slide__item ${props.className}`}
+      style={{ backgroundImage: `url(${background})` }}
+    >
+      <div className="hero-slide__item__content container">
+        <div className="hero-slide__item__content__info">
+          <h2 className="title">{item.title}</h2>
+          <div className="overview">{item.overview}</div>
+          <div className="btns">
+            <Button
+              onClick={() => navigate("/movie/" + item.id)}
+              icon={<PlayIcon />}
+            >
+              Play now
+            </Button>
+          </div>
+        </div>
+        <div className="hero-slide__item__content__poster">
+          <img src={apiConfig.w500Image(item.poster_path)} alt="" />
+        </div>
+      </div>
+    </div>
   );
 };
 
