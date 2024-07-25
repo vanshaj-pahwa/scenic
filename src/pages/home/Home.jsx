@@ -1,10 +1,10 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Button, { OutlineButton } from "../components/button/Button";
-import HeroSlide from "../components/hero-slide/HeroSlide";
-import MovieList from "../components/movie-list/MovieList";
-import { category, movieType, tvType } from "../api/tmdbApi";
-import Input from "../components/input/Input";
+import Button, { OutlineButton } from "../../components/button/Button";
+import HeroSlide from "../../components/hero-slide/HeroSlide";
+import MovieList from "../../components/movie-list/MovieList";
+import { category, movieType, tvType } from "../../api/tmdbApi";
+import Input from "../../components/input/Input";
 import "./Home.scss";
 
 const Home = () => {

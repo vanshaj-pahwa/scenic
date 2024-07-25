@@ -4,7 +4,7 @@ import './App.scss';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Header from './components/header/Header';
 import Footer from './components/footer/Footer';
-import Home from './pages/Home';
+import Home from './pages/home/Home';
 import Catalog from './pages/Catalog';
 import Detail from './pages/detail/Detail';
 import MultiSearch from './components/MultiSearch/MultiSearch';

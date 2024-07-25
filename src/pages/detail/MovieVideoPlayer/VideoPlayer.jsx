@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import "./VideoPlayer.scss";
-import Card from "../../components/card/Card";
-import { embededMovieUrls } from "../../constants/constants";
-import apiConfig from "../../api/apiConfig";
-import Button from "../../components/button/Button";
+import Card from "../../../components/card/Card";
+import { embededMovieUrls } from "../../../constants/constants";
+import apiConfig from "../../../api/apiConfig";
+import Button from "../../../components/button/Button";
 
 const VideoPlayer = ({ id, title, movie }) => {
   const [selectedServer, setSelectedServer] = useState(null);
