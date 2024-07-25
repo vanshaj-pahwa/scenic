@@ -26,7 +26,6 @@ We welcome contributions to make Scenic even better! Here’s how you can get in
 
 - Ensure your code adheres to the existing style and conventions.
 - Write clear, concise commit messages.
-- Update documentation and tests as needed.
 
 Thank you for helping make Scenic better!
 
