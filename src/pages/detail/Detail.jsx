@@ -29,8 +29,6 @@ const Detail = () => {
     }
   };
 
-  console.log(item);
-
   return (
     <>
       {item && (
