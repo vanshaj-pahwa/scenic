@@ -1,40 +1,86 @@
 @use "../../scss/" as *;
 
+// .footer {
+//     position: relative;
+//     padding: 6rem 2rem;
+//     background-position: top;
+//     background-size: cover;
+//     background-repeat: no-repeat;
+
+//     &__content {
+//         max-width: 1000px;
+
+//         &__logo {
+//             @include flex(center, center);
+//             margin-bottom: 3rem;
+//         }
+
+//         &__menus {
+//             display: grid;
+//             grid-template-columns: repeat(3, 1fr);
+
+//             @include mobile {
+//                 grid-template-columns: repeat(2, 1fr);
+//             }
+//         }
+
+//         &__menu {
+//             @include flex(flex-start, flex-start);
+//             flex-direction: column;
+//             margin-top: 1rem;
+
+//             font-size: 1.5rem;
+//             font-weight: 600;
+
+//             & > * ~ * {
+//                 margin-top: 1rem;
+//             }
+//         }
+//     }
+// }
+
 .footer {
-    position: relative;
-    padding: 6rem 2rem;
-    background-position: top;
-    background-size: cover;
-    background-repeat: no-repeat;
+    background-color: #1a1a1a;
+    color: #393636;
+    padding: 20px 0;
+    text-align: center;
 
-    &__content {
-        max-width: 1000px;
+    &__social-icons {
+        margin-bottom: 5px;
 
-        &__logo {
-            @include flex(center, center);
-            margin-bottom: 3rem;
-        }
+        a {
+            color: #393636;
+            font-size: 20px;
+            margin: 0 5px;
+            transition: color 0.3s ease;
 
-        &__menus {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-
-            @include mobile {
-                grid-template-columns: repeat(2, 1fr);
+            &:hover {
+                color: white;
             }
         }
+    }
 
-        &__menu {
-            @include flex(flex-start, flex-start);
-            flex-direction: column;
-            margin-top: 1rem;
+    &__credit {
+        font-size: 14px;
 
-            font-size: 1.5rem;
-            font-weight: 600;
+        a {
+            color: #393636;
+            text-decoration: none;
+            transition: color 0.3s ease;
 
-            & > * ~ * {
-                margin-top: 1rem;
+            &:hover {
+                color: white;
             }
+        }
+    }
+
+    @include mobile {
+        &__social-icons {
+            font-size: 16px;
+        }
+        &__credit {
+            font-size: 12px;
+            padding-bottom: 1rem;
         }
     }
 }

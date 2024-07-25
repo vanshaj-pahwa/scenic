@@ -1,5 +1,7 @@
 import React from 'react';
 import './footer.scss';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faGithub, faLinkedin, faInstagram } from '@fortawesome/free-brands-svg-icons';
 
 const Footer = () => {
     return (
@@ -32,7 +34,22 @@ const Footer = () => {
         //         </div>
         //     </div>
         // </div>
-        <></>
+        <footer className="footer">
+            <div className="footer__social-icons">
+                <a href="https://github.com/vanshaj-pahwa" target="_blank" rel="noopener noreferrer">
+                    <FontAwesomeIcon icon={faGithub} />
+                </a>
+                <a href="https://linkedin.com/in/vanshaj-pahwa" target="_blank" rel="noopener noreferrer">
+                    <FontAwesomeIcon icon={faLinkedin} />
+                </a>
+                <a href="https://instagram.com/vanshaj.pahwa" target="_blank" rel="noopener noreferrer">
+                    <FontAwesomeIcon icon={faInstagram} />
+                </a>
+            </div>
+            <div className="footer__credit">
+                Developed by <a href="https://github.com/vanshaj-pahwa" target="_blank" rel="noopener noreferrer">Vanshaj Pahwa</a>
+            </div>
+        </footer>
     );
 }
 

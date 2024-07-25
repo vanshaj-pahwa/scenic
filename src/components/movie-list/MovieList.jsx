@@ -16,9 +16,10 @@ const MovieList = ({ category: cat, type, id }) => {
       const params = {};
 
       if (type !== "similar") {
-        response = cat === category.movie
-          ? await tmdbApi.getMoviesList(type, { params })
-          : await tmdbApi.getTvList(type, { params });
+        response =
+          cat === category.movie
+            ? await tmdbApi.getMoviesList(type, { params })
+            : await tmdbApi.getTvList(type, { params });
       } else {
         if (!id) throw new Error("ID is required for similar content");
         response = await tmdbApi.similar(cat, id);
@@ -47,36 +48,38 @@ const MovieList = ({ category: cat, type, id }) => {
           slidesToShow: 4,
           slidesToScroll: 3,
           infinite: true,
-          dots: true
-        }
+          dots: true,
+        },
       },
       {
         breakpoint: 600,
         settings: {
           slidesToShow: 3,
           slidesToScroll: 3,
-          initialSlide: 2
-        }
+          initialSlide: 2,
+        },
       },
       {
         breakpoint: 480,
         settings: {
           slidesToShow: 2,
-          slidesToScroll: 2
-        }
-      }
-    ]
+          slidesToScroll: 2,
+        },
+      },
+    ],
   };
 
   return (
     <div className="movie-list">
-      <Slider {...settings}>
-        {items.map((item) => (
-          <div key={item.id}>
-            <MovieCard item={item} category={cat} />
-          </div>
-        ))}
-      </Slider>
+      {items.length > 0 && (
+        <Slider {...settings}>
+          {items.map((item) => (
+            <div key={item.id}>
+              <MovieCard item={item} category={cat} />
+            </div>
+          ))}
+        </Slider>
+      )}
     </div>
   );
 };
