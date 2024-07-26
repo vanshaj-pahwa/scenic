@@ -50,6 +50,22 @@ const tmdbApi = {
     getSeason: (id, seasonNumber) => {
         const url = `tv/${id}/season/${seasonNumber}`;
         return axiosClient.get(url, {params: {}});
+    },
+    getGenreList: (cate) => {
+        const url = `genre/${category[cate]}/list`;
+        return axiosClient.get(url, {params: {}});
+    },
+    getMoviesByGenre: (params) => {
+        const url = 'discover/movie';
+        return axiosClient.get(url, { params });
+    },
+    getTvByGenre: (params) => {
+        const url = 'discover/tv';
+        return axiosClient.get(url, { params });
+    },
+    getCountryList: () => {
+        const url = 'configuration/countries';
+        return axiosClient.get(url, {params: {}});
     }
 }
 
