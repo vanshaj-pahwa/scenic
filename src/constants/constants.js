@@ -5,6 +5,8 @@ export const embededMovieUrls = {
     server4: "https://multiembed.mov/directstream.php?video_id="
 }
 export const embededSeriesUrls = {
-    server1: "https://vidsrc.xyz/embed/tv",
-    server2: "https://multiembed.mov/directstream.php?video_id="
+    server1: "https://vidsrc.pro/embed/tv/",
+    server2: "https://vidsrc.to/embed/tv/",
+    server3: "https://vidsrc.xyz/embed/tv",
+    server4: "https://multiembed.mov/directstream.php?video_id="
 }

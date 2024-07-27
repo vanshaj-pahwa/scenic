@@ -1,36 +1,39 @@
 import React, { useState, useEffect } from "react";
 import "./SeriesVideoPlayer.scss";
 import Card from "../../../components/card/Card";
-import {
-  embededSeriesUrls,
-} from "../../../constants/constants";
+import { embededSeriesUrls } from "../../../constants/constants";
 import apiConfig from "../../../api/apiConfig";
 import Button from "../../../components/button/Button";
 import tmdbApi from "../../../api/tmdbApi";
 
 const SeriesVideoPlayer = ({ id, title, series }) => {
-  const [selectedServer, setSelectedServer] = useState(null);
+  const [selectedServer, setSelectedServer] = useState(0);
   const [serverUrl, setServerUrl] = useState("");
   const [selectedSeason, setSelectedSeason] = useState(null);
   const [selectedEpisode, setSelectedEpisode] = useState(null);
   const [episodes, setEpisodes] = useState([]);
-  const servers = ["Server 1", "Server 2"];
+  const servers = ["Server 1", "Server 2", "Server 3", "Server 4"];
 
   const handleServerClick = (index) => {
     setSelectedServer(index);
-    selectedServer === 0
-      ? setServerUrl(
-          `${embededSeriesUrls.server1}?tmdb=${id}&season=${selectedSeason}&episode=${selectedEpisode}`
-        )
-      : setServerUrl(
-          `${embededSeriesUrls.server2}${id}&tmdb=1&s=${selectedSeason}&e=${selectedEpisode}`
-        );
+    let url = "";
+    if (index === 0) {
+      url = `${embededSeriesUrls.server1}${id}/${selectedSeason}/${selectedEpisode}`;
+    } else if (index === 1) {
+      url = `${embededSeriesUrls.server2}${id}/${selectedSeason}/${selectedEpisode}`;
+    } else if (index === 2) {
+      url = `${embededSeriesUrls.server3}?tmdb=${id}&season=${selectedSeason}&episode=${selectedEpisode}`;
+      console.log(url);
+    } else {
+      url = `${embededSeriesUrls.server4}${id}&tmdb=1&s=${selectedSeason}&e=${selectedEpisode}`;
+    }
+    setServerUrl(url);
   };
 
   useEffect(() => {
     handleServerClick(selectedServer);
     handleEpisodeClick(selectedEpisode);
-  }, [selectedEpisode, selectedServer])
+  }, [selectedEpisode, selectedServer]);
 
   const handlePlayButtonClick = () => {
     setSelectedSeason(1);
@@ -82,24 +85,27 @@ const SeriesVideoPlayer = ({ id, title, series }) => {
         )}
       </div>
       <div>
-        {selectedEpisode && <div className="series-server-container">
-          <div>
-            If the current server doesn't work, please try other servers below.
+        {selectedEpisode && (
+          <div className="series-server-container">
+            <div>
+              If the current server doesn't work, please try other servers
+              below.
+            </div>
+            <div className="series-server-card-container">
+              {servers.map((server, index) => (
+                <Card
+                  key={index}
+                  className={`series-server-card ${
+                    selectedServer === index ? "selected" : ""
+                  }`}
+                  onClick={() => handleServerClick(index)}
+                >
+                  {server}
+                </Card>
+              ))}
+            </div>
           </div>
-          <div className="series-server-card-container">
-            {servers.map((server, index) => (
-              <Card
-                key={index}
-                className={`series-server-card ${
-                  selectedServer === index ? "selected" : ""
-                }`}
-                onClick={() => handleServerClick(index)}
-              >
-                {server}
-              </Card>
-            ))}
-          </div>
-        </div>}
+        )}
         {series.seasons && series.seasons.length > 0 && (
           <div className="season-container">
             <select
@@ -123,12 +129,16 @@ const SeriesVideoPlayer = ({ id, title, series }) => {
                     <Card
                       key={episode.id}
                       onClick={() => handleEpisodeClick(episode.episode_number)}
-                      className={`series-episode-card ${selectedEpisode === episode.episode_number ? 'selected' : ''}`}
+                      className={`series-episode-card ${
+                        selectedEpisode === episode.episode_number
+                          ? "selected"
+                          : ""
+                      }`}
                     >
                       Episode {episode.episode_number}: {episode.name}
                     </Card>
                   ))}
-                  </div>
+                </div>
               </div>
             )}
           </div>
