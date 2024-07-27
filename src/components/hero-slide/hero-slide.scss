@@ -53,8 +53,11 @@
                 font-size: 38px;
                 font-weight: 700;
 
+                @include mobile {
+                    font-size: 2rem;
+                }
                 @include tablet {
-                    font-size: 1rem;
+                    font-size: 2rem;
                 }
             }
 
@@ -75,7 +78,7 @@
             .title,
             .overview {
                 opacity: 0;
-                transform: translateY(-100px);
+                transform: translateY(-80px);
                 transition: transform 0.5s ease, opacity 0.5s ease;
             }
         }
