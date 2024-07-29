@@ -124,6 +124,10 @@
 .season-container {
     background-color: rgb(23, 23, 23);
     padding: 1rem;
+
+    .Dropdown-root {
+      width: 12rem;
+    }
   
     .episode-container {
       margin-top: 1rem;
@@ -156,12 +160,3 @@
       }
     }
   }
-
-.season-select {
-  background-color: black;
-  color: white;
-  padding: 1rem;
-  border: none;
-  font-size: 16px;
-  border-radius: 8px;
-}

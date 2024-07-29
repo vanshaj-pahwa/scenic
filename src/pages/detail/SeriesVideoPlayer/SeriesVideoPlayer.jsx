@@ -5,6 +5,8 @@ import { embededSeriesUrls } from "../../../constants/constants";
 import apiConfig from "../../../api/apiConfig";
 import Button from "../../../components/button/Button";
 import tmdbApi from "../../../api/tmdbApi";
+import Dropdown from "react-dropdown";
+import "react-dropdown/style.css";
 
 const SeriesVideoPlayer = ({ id, title, series }) => {
   const [selectedServer, setSelectedServer] = useState(0);
@@ -31,27 +33,29 @@ const SeriesVideoPlayer = ({ id, title, series }) => {
   };
 
   useEffect(() => {
-    handleServerClick(selectedServer);
-    handleEpisodeClick(selectedEpisode);
+    if (selectedServer !== null && selectedEpisode !== null) {
+      handleServerClick(selectedServer);
+    }
   }, [selectedEpisode, selectedServer]);
 
   const handlePlayButtonClick = () => {
     setSelectedSeason(1);
     setSelectedEpisode(1);
     setServerUrl(
-      `${embededSeriesUrls.server1}?tmdb=${id}&season=${selectedSeason}&episode=${selectedEpisode}`
+      `${embededSeriesUrls.server1}?tmdb=${id}&season=1&episode=1`
     );
     setSelectedServer(0);
   };
 
-  const handleSeasonChange = (event) => {
-    setSelectedSeason(Number(event.target.value));
+  const handleSeasonChange = (option) => {
+    const season = Number(option.value);
+    setSelectedSeason(season);
     setSelectedEpisode(null);
+    setEpisodes([]);
   };
 
   const handleEpisodeClick = (episode_number) => {
     setSelectedEpisode(episode_number);
-    setSelectedServer(selectedServer);
   };
 
   useEffect(() => {
@@ -61,6 +65,15 @@ const SeriesVideoPlayer = ({ id, title, series }) => {
       });
     }
   }, [selectedSeason, id]);
+
+  const seasonOptions = series.seasons
+    ? series.seasons
+        .filter(season => season.season_number !== 0)
+        .map(season => ({
+          value: season.season_number,
+          label: `Season ${season.season_number}`
+        }))
+    : [];
 
   return (
     <React.Fragment>
@@ -108,19 +121,14 @@ const SeriesVideoPlayer = ({ id, title, series }) => {
         )}
         {series.seasons && series.seasons.length > 0 && (
           <div className="season-container">
-            <select
-              id="season-select"
-              value={selectedSeason}
+            <Dropdown
+              options={seasonOptions}
               onChange={handleSeasonChange}
-              className="season-select"
-            >
-              <option value={0}>Select a season</option>
-              {series.seasons.map((season) => (
-                season.season_number !==0 && <option key={season.id} value={season.season_number}>
-                  Season {season.season_number}
-                </option>
-              ))}
-            </select>
+              value={seasonOptions.find(
+                (option) => option.value === selectedSeason
+              )}
+              placeholder="Select a season"
+            />
             {episodes.length > 0 && (
               <div className="episode-container">
                 <h3>Episodes</h3>
