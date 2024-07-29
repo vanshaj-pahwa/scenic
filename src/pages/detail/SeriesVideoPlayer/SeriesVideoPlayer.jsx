@@ -116,7 +116,7 @@ const SeriesVideoPlayer = ({ id, title, series }) => {
             >
               <option value={0}>Select a season</option>
               {series.seasons.map((season) => (
-                <option key={season.id} value={season.season_number}>
+                season.season_number !==0 && <option key={season.id} value={season.season_number}>
                   Season {season.season_number}
                 </option>
               ))}

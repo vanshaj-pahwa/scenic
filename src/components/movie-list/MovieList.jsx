@@ -9,8 +9,10 @@ import "slick-carousel/slick/slick-theme.css";
 
 const MovieList = ({ category: cat, type, id }) => {
   const [items, setItems] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const getList = useCallback(async () => {
+    setIsLoading(true);
     try {
       let response;
       const params = {};
@@ -26,8 +28,10 @@ const MovieList = ({ category: cat, type, id }) => {
       }
 
       setItems(response.results);
+      setIsLoading(false);
     } catch (error) {
       console.error("Failed to fetch movie/TV list:", error);
+      setIsLoading(false);
     }
   }, [cat, type, id]);
 
@@ -68,6 +72,10 @@ const MovieList = ({ category: cat, type, id }) => {
       },
     ],
   };
+
+  if(isLoading) {
+    return <div>Loading..</div>
+  }
 
   return (
     <div className="movie-list">
