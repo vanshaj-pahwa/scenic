@@ -5,8 +5,7 @@ import { embededSeriesUrls } from "../../../constants/constants";
 import apiConfig from "../../../api/apiConfig";
 import Button from "../../../components/button/Button";
 import tmdbApi from "../../../api/tmdbApi";
-import Dropdown from "react-dropdown";
-import "react-dropdown/style.css";
+import Select from "react-select";
 
 const SeriesVideoPlayer = ({ id, title, series }) => {
   const [selectedServer, setSelectedServer] = useState(0);
@@ -36,6 +35,7 @@ const SeriesVideoPlayer = ({ id, title, series }) => {
     if (selectedServer !== null && selectedEpisode !== null) {
       handleServerClick(selectedServer);
     }
+    // eslint-disable-next-line
   }, [selectedEpisode, selectedServer]);
 
   const handlePlayButtonClick = () => {
@@ -74,6 +74,44 @@ const SeriesVideoPlayer = ({ id, title, series }) => {
           label: `Season ${season.season_number}`
         }))
     : [];
+
+    const customSelectStyles = {
+      control: (provided) => ({
+        ...provided,
+        backgroundColor: "black",
+        color: "white",
+        borderColor: "white",
+        minWidth: '12rem',
+        maxWidth: '12rem'
+      }),
+      singleValue: (provided) => ({
+        ...provided,
+        color: "white",
+      }),
+      menu: (provided) => ({
+        ...provided,
+        backgroundColor: "black",
+        maxWidth: '12rem'
+      }),
+      option: (provided, state) => ({
+        ...provided,
+        backgroundColor: state.isSelected ? "#333" : "black",
+        color: "white",
+        cursor: 'pointer',
+        "&:hover": {
+          backgroundColor: "#555",
+        },
+        maxWidth: '12rem'
+      }),
+      placeholder: (provided) => ({
+        ...provided,
+        color: "gray",
+      }),
+      input: (provided) => ({
+        ...provided,
+        color: "white",
+      }),
+    };
 
   return (
     <React.Fragment>
@@ -121,14 +159,16 @@ const SeriesVideoPlayer = ({ id, title, series }) => {
         )}
         {series.seasons && series.seasons.length > 0 && (
           <div className="season-container">
-            <Dropdown
-              options={seasonOptions}
-              onChange={handleSeasonChange}
+            <Select
+            options={seasonOptions}
+            onChange={handleSeasonChange}
               value={seasonOptions.find(
                 (option) => option.value === selectedSeason
               )}
-              placeholder="Select a season"
-            />
+            placeholder="Select a season"
+            isSearchable={false}
+            styles={customSelectStyles}
+          />
             {episodes.length > 0 && (
               <div className="episode-container">
                 <h3>Episodes</h3>

@@ -22,6 +22,7 @@ const Detail = () => {
 
   useEffect(() => {
     getDetail();
+    // eslint-disable-next-line
   }, [category, id]);
 
   const handlePlayButtonClick = () => {

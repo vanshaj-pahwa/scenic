@@ -5,8 +5,7 @@ import MovieCard from "../movie-card/MovieCard";
 import Button, { OutlineButton } from "../button/Button";
 import Input from "../input/Input";
 import tmdbApi, { category, movieType, tvType } from "../../api/tmdbApi";
-import Dropdown from "react-dropdown";
-import "react-dropdown/style.css";
+import Select from "react-select";
 
 const MovieGrid = (props) => {
   const [items, setItems] = useState([]);
@@ -35,18 +34,18 @@ const MovieGrid = (props) => {
     };
 
     const getCountries = async () => {
-        try {
-          const response = await tmdbApi.getCountryList();
-          setCountries(
-            response.map((country) => ({
-              value: country.iso_3166_1,
-              label: country.english_name,
-            }))
-          );
-        } catch (error) {
-          console.error("Error fetching countries:", error);
-        }
-      };
+      try {
+        const response = await tmdbApi.getCountryList();
+        setCountries(
+          response.map((country) => ({
+            value: country.iso_3166_1,
+            label: country.english_name,
+          }))
+        );
+      } catch (error) {
+        console.error("Error fetching countries:", error);
+      }
+    };
 
     getGenres();
     getCountries();
@@ -58,9 +57,7 @@ const MovieGrid = (props) => {
     if (keyword === undefined && !selectedGenre && !selectedCountry) {
       switch (props.category) {
         case category.movie:
-          response = await tmdbApi.getMoviesList(movieType.upcoming, {
-            params,
-          });
+          response = await tmdbApi.getMoviesList(movieType.popular, { params });
           break;
         default:
           response = await tmdbApi.getTvList(tvType.popular, { params });
@@ -91,6 +88,7 @@ const MovieGrid = (props) => {
 
   useEffect(() => {
     getList();
+    // eslint-disable-next-line
   }, [props.category, keyword, selectedGenre, selectedCountry]);
 
   const loadMore = async () => {
@@ -101,9 +99,7 @@ const MovieGrid = (props) => {
     if (keyword === undefined && !selectedGenre && !selectedCountry) {
       switch (props.category) {
         case category.movie:
-          response = await tmdbApi.getMoviesList(movieType.upcoming, {
-            params,
-          });
+          response = await tmdbApi.getMoviesList(movieType.popular, { params });
           break;
         default:
           response = await tmdbApi.getTvList(tvType.popular, { params });
@@ -132,25 +128,67 @@ const MovieGrid = (props) => {
     setPage(page + 1);
   };
 
+  // Custom styles for the Select component
+  const customSelectStyles = {
+    control: (provided) => ({
+      ...provided,
+      backgroundColor: "black",
+      color: "white",
+      borderColor: "white",
+      minWidth: '12rem',
+    }),
+    singleValue: (provided) => ({
+      ...provided,
+      color: "white",
+    }),
+    menu: (provided) => ({
+      ...provided,
+      backgroundColor: "black",
+    }),
+    option: (provided, state) => ({
+      ...provided,
+      backgroundColor: state.isSelected ? "#333" : "black",
+      color: "white",
+      cursor: 'pointer',
+      "&:hover": {
+        backgroundColor: "#555",
+      },
+    }),
+    placeholder: (provided) => ({
+      ...provided,
+      color: "gray",
+    }),
+    input: (provided) => ({
+      ...provided,
+      color: "white",
+    }),
+  };
+
   return (
     <>
       <div className="section mb-3">
         <div style={{ display: "flex", justifyContent: "center" }}>
           <MovieSearch category={props.category} keyword={keyword} />
         </div>
-        <div style={{display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '2rem'}}>
-        <Dropdown
-          options={genres}
-          onChange={(genre) => setSelectedGenre(genre)}
-          value={selectedGenre}
-          placeholder="Select a genre"
-        />
-        <Dropdown
-          options={countries}
-          onChange={(country) => setSelectedCountry(country)}
-          value={selectedCountry}
-          placeholder="Select a country"
-        />
+        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '2rem' }}>
+          <Select
+            options={genres}
+            onChange={(genre) => setSelectedGenre(genre)}
+            value={selectedGenre}
+            placeholder="Select a genre"
+            isSearchable={true}
+            isClearable={true}
+            styles={customSelectStyles}
+          />
+          <Select
+            options={countries}
+            onChange={(country) => setSelectedCountry(country)}
+            value={selectedCountry}
+            placeholder="Select a country"
+            isSearchable={true}
+            isClearable={true}
+            styles={customSelectStyles}
+          />
         </div>
       </div>
       <div className="movie-grid">
