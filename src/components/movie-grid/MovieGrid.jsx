@@ -193,7 +193,7 @@ const MovieGrid = (props) => {
       </div>
       <div className="movie-grid">
         {items.map((item, i) => (
-          <MovieCard category={props.category} item={item} key={i} />
+          (item.poster_path || item.backdrop_path) && <MovieCard category={props.category} item={item} key={i} />
         ))}
       </div>
       {page < totalPage ? (

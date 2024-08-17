@@ -86,6 +86,13 @@
                 background-color: $body-bg;
             }
         }
+        .buttons {
+            display: flex;
+            gap: 1rem;
+        }
+        .trailer-btn {
+            font-size: 0.8rem;
+        }
     }
 }
 
