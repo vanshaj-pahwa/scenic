@@ -21,14 +21,3 @@ We welcome contributions to make Scenic even better! Here’s how you can get in
 5. **Commit Your Changes:** Commit your changes with a descriptive commit message using `git commit -m "Description of your changes"`.
 6. **Push to the Branch:** Push your changes to your forked repository using `git push origin your-branch-name`.
 7. **Create a Pull Request:** Go to the original repository on GitHub and create a pull request to merge your changes.
-
-### Guidelines
-
-- Ensure your code adheres to the existing style and conventions.
-- Write clear, concise commit messages.
-
-Thank you for helping make Scenic better!
-
----
-
-Scenic: Where every click opens a new world of entertainment!
