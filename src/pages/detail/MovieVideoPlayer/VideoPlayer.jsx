@@ -16,13 +16,10 @@ const VideoPlayer = ({ id, title, movie }) => {
         setServerUrl(`${embededMovieUrls.server1}${id}`);
         break;
       case 1:
-        setServerUrl(`${embededMovieUrls.server2}${id}`);
-        break;
-      case 2:
         setServerUrl(`${embededMovieUrls.server3}${id}`);
         break;
-      case 3:
-        setServerUrl(`${embededMovieUrls.server4}${id}&tmdb=1`);
+      case 2:
+        setServerUrl(`${embededMovieUrls.server4}${id}`);
         break;
       default:
         break;
@@ -59,7 +56,7 @@ const VideoPlayer = ({ id, title, movie }) => {
             If the current server doesn't work, please try other servers below.
           </div>
           <div className="server-card-container">
-            {["Server 1", "Server 2", "Server 3", "Server 4"].map((server, index) => (
+            {["Server 1", "Server 2", "Server 3"].map((server, index) => (
               <Card
                 key={index}
                 className={`server-card ${
