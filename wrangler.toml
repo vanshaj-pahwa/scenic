@@ -1,0 +1,6 @@
+name = "scenic"
+pages_build_output_dir = "build"
+compatibility_date = "2026-06-01"
+
+# Env vars are set in the Pages dashboard (Settings -> Variables and Secrets)
+# rather than here, so keys stay out of the repo. See .env.example for the list.

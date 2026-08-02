@@ -1,35 +1,33 @@
-export const config = { runtime: 'edge' };
-
 // Dynamic sitemap: static landing pages + currently popular/trending movie and
 // TV detail URLs, so Google can discover and crawl the deep pages.
-export default async function handler(request) {
-  const origin = new URL(request.url).origin;
-  const apiKey = process.env.TMDB_API_KEY || process.env.REACT_APP_API_KEY;
+import { bindEnv, tmdbKey } from "../lib/env.js";
+
+export async function onRequest(context) {
+  bindEnv(context.env);
+
+  const origin = new URL(context.request.url).origin;
+  const apiKey = tmdbKey();
 
   const urls = [
-    { loc: `${origin}/`, priority: '1.0', changefreq: 'daily' },
-    { loc: `${origin}/movie`, priority: '0.9', changefreq: 'daily' },
-    { loc: `${origin}/tv`, priority: '0.9', changefreq: 'daily' },
-    { loc: `${origin}/anime`, priority: '0.8', changefreq: 'daily' },
+    { loc: `${origin}/`, priority: "1.0", changefreq: "daily" },
+    { loc: `${origin}/movie`, priority: "0.9", changefreq: "daily" },
+    { loc: `${origin}/tv`, priority: "0.9", changefreq: "daily" },
+    { loc: `${origin}/anime`, priority: "0.8", changefreq: "daily" },
   ];
 
   if (apiKey) {
     const endpoints = [
-      ['movie', 'movie/popular'],
-      ['movie', 'trending/movie/week'],
-      ['movie', 'movie/top_rated'],
-      ['tv', 'tv/popular'],
-      ['tv', 'trending/tv/week'],
-      ['tv', 'tv/top_rated'],
+      ["movie", "movie/popular"],
+      ["movie", "trending/movie/week"],
+      ["movie", "movie/top_rated"],
+      ["tv", "tv/popular"],
+      ["tv", "trending/tv/week"],
+      ["tv", "tv/top_rated"],
     ];
     try {
       const lists = await Promise.all(
         endpoints.map(([type, path]) =>
-          fetch(
-            `https://api.themoviedb.org/3/${path}?api_key=${encodeURIComponent(
-              apiKey
-            )}`
-          )
+          fetch(`https://api.themoviedb.org/3/${path}?api_key=${encodeURIComponent(apiKey)}`)
             .then((r) => (r.ok ? r.json() : { results: [] }))
             .then((d) => (d.results || []).map((m) => ({ type, id: m.id })))
             .catch(() => [])
@@ -42,11 +40,7 @@ export default async function handler(request) {
           const key = `${type}:${id}`;
           if (seen.has(key)) continue;
           seen.add(key);
-          urls.push({
-            loc: `${origin}/${type}/${id}`,
-            priority: '0.7',
-            changefreq: 'weekly',
-          });
+          urls.push({ loc: `${origin}/${type}/${id}`, priority: "0.7", changefreq: "weekly" });
         }
       }
     } catch (_) {
@@ -62,15 +56,14 @@ export default async function handler(request) {
         (u) =>
           `  <url><loc>${u.loc}</loc><changefreq>${u.changefreq}</changefreq><priority>${u.priority}</priority></url>`
       )
-      .join('\n') +
+      .join("\n") +
     `\n</urlset>\n`;
 
   return new Response(body, {
     status: 200,
     headers: {
-      'Content-Type': 'application/xml; charset=utf-8',
-      'Cache-Control':
-        'public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800',
+      "Content-Type": "application/xml; charset=utf-8",
+      "Cache-Control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800",
     },
   });
 }

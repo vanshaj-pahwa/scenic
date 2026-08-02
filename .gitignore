@@ -24,3 +24,7 @@ IMPROVEMENTS.md
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Cloudflare
+.dev.vars
+.wrangler/
