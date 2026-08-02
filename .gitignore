@@ -29,3 +29,5 @@ yarn-error.log*
 .dev.vars
 .wrangler/
 .env.vercel
+.vercel
+.env*
