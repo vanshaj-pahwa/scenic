@@ -9,6 +9,7 @@
 const { getStreamSource } = require("./_streamSource");
 const { getMirrorSource } = require("./_mirrorSource");
 const { getRelaySource } = require("./_relaySource");
+const { isProxied } = require("./_proxyUrl");
 
 const catalogOK = () => !!(process.env.CATALOG_BASE && process.env.CATALOG_PLAYER_ACTION);
 const mirrorOK = () => !!process.env.MIRROR_BASE;
@@ -69,9 +70,9 @@ async function listSources({ type, id, season, episode }) {
                   src,
                   type: r.stream.type === "mp4" ? "mp4" : "hls",
                   subs: (r.stream.subtitles || []).length,
-                  // Direct = plays browser->CDN (no /api/hls-proxy), so zero
-                  // Fast Origin Transfer. Proxied HLS routes video through us.
-                  direct: !String(r.stream.url).startsWith("/api/hls-proxy"),
+                  // Direct = plays browser->CDN (no proxy hop), so it costs us
+                  // nothing. Proxied HLS routes every video byte through us.
+                  direct: !isProxied(r.stream.url),
                 }
               : null
           )

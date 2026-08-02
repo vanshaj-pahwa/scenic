@@ -8,10 +8,7 @@ const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
   "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
 
-function proxied(url, headers) {
-  const h = Buffer.from(JSON.stringify(headers)).toString("base64");
-  return `/api/hls-proxy?url=${encodeURIComponent(url)}&h=${encodeURIComponent(h)}`;
-}
+const { proxied } = require("./_proxyUrl");
 
 // Embed + CDN hosts intermittently reset or return 5xx; retry transient failures.
 async function tryFetch(url, opts, tries = 4) {

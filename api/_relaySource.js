@@ -2,6 +2,8 @@
 // as a custom-base64 payload decoded here. Host, provider routes, stream referer
 // and the subtitle host are env-driven. Streams may be HLS (proxied) or a direct
 // MP4; each provider is a fallback candidate the client walks when one fails.
+const { proxied } = require("./_proxyUrl");
+
 const RELAY_BASE = (process.env.RELAY_BASE || "").replace(/\/+$/, "");
 // Comma-separated provider routes tried in order; coverage varies per title, so
 // each is a fallback candidate the client walks.
@@ -35,10 +37,6 @@ function decodePayload(data) {
   return Buffer.from(out).toString("utf8");
 }
 
-function proxied(url, headers) {
-  const h = Buffer.from(JSON.stringify(headers)).toString("base64");
-  return `/api/hls-proxy?url=${encodeURIComponent(url)}&h=${encodeURIComponent(h)}`;
-}
 
 async function tryFetch(url, opts, tries = 4) {
   let last = 0;

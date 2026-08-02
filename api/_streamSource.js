@@ -1,3 +1,5 @@
+const { proxied } = require("./_proxyUrl");
+
 const CATALOG_BASE = (process.env.CATALOG_BASE || "").replace(/\/+$/, "");
 const PLAYER_ACTION = process.env.CATALOG_PLAYER_ACTION || "";
 const TMDB_KEY = process.env.TMDB_API_KEY || process.env.REACT_APP_API_KEY || "";
@@ -59,10 +61,6 @@ async function getPage(url, cookie) {
   return { status: res.status, text: res.ok ? await res.text() : null };
 }
 
-function proxied(url, headers) {
-  const h = Buffer.from(JSON.stringify(headers)).toString("base64");
-  return `/api/hls-proxy?url=${encodeURIComponent(url)}&h=${encodeURIComponent(h)}`;
-}
 
 async function getStreamSource({ type, id, season, episode }) {
   if (!CATALOG_BASE || !PLAYER_ACTION) return { url: null, _diag: { stage: "unconfigured" } };

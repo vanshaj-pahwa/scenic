@@ -1,0 +1,13 @@
+# `name` is the first label of the deployed URL:
+#   https://<name>.<your-account-subdomain>.workers.dev
+# The subdomain half is account-level (shared by every Worker you deploy) and is
+# set in the dashboard under Workers & Pages -> Your subdomain, not here.
+name = "stream"
+main = "hls-proxy.js"
+compatibility_date = "2026-06-01"
+
+# Optional but recommended: restrict which upstream hosts this proxy will relay,
+# so it can't be used as a general-purpose open proxy. Comma-separated hostname
+# suffixes. Leave unset to allow any host.
+# [vars]
+# ALLOWED_HOSTS = "example-cdn.com,another-cdn.net"
