@@ -240,7 +240,15 @@ const VideoPlayerModal = ({
                 <iframe
                   src={serverUrl}
                   allowFullScreen
-                  allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+                  // Each feature needs an explicit `*` allowlist. Bare
+                  // `fullscreen` defaults to 'src', which is the origin in the
+                  // src attribute above — and several embeds redirect
+                  // cross-origin on load (vidfast.pro -> vidfast.vc,
+                  // vidcore.net -> vidcore.io). Once the frame lands on the new
+                  // origin the 'src' grant no longer matches it and fullscreen
+                  // is denied, which is why those servers couldn't go
+                  // fullscreen while same-origin ones could.
+                  allow="autoplay *; encrypted-media *; fullscreen *; picture-in-picture *"
                   title={title}
                   onLoad={() => setIframeLoaded(true)}
                 />
