@@ -118,21 +118,38 @@ $glass: rgba(16, 16, 24, 0.66);
     .scenic-player__nw-desc { display: none; }
 
     // Netflix-style paused view: left-aligned title, metadata and synopsis.
+    // Anchored to the bottom but capped at the top: previously this block was
+    // bottom-only, so a long title on a short viewport grew upward until it
+    // collided with the modal header and the source chip. Now the content hugs
+    // the bottom of a bounded box and the title clamps instead of pushing the
+    // block taller.
     &.is-paused {
-      top: auto;
-      bottom: 22%;
+      top: clamp(88px, 15vh, 150px);
+      bottom: 19%;
       left: 5.5%;
       right: auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      overflow: hidden;
       text-align: left;
-      max-width: min(46ch, 84%);
+      // Narrower than the frame so it stays clear of the centre play button.
+      max-width: min(42ch, 52%);
       animation: sp-rise 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 
       strong {
         margin-top: 0.45rem;
-        font-size: clamp(2.1rem, 5.6vw, 3.8rem);
-        line-height: 1.03;
+        // Scales with height as well as width — a viewport-width-only clamp
+        // kept the title huge on short windows, which is what overflowed.
+        font-size: clamp(1.4rem, min(4.4vw, 6.2vh), 3rem);
+        line-height: 1.06;
         letter-spacing: -0.03em;
         text-shadow: 0 6px 44px rgba(0, 0, 0, 0.95);
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+        overflow: hidden;
       }
       .scenic-player__nw-se {
         display: block;
@@ -162,6 +179,15 @@ $glass: rgba(16, 16, 24, 0.66);
         line-height: 1.5;
         color: rgba(255, 255, 255, 0.66);
         text-shadow: 0 2px 14px rgba(0, 0, 0, 0.9);
+      }
+
+      // Short windows have the least room to spare; drop a synopsis line.
+      @media (max-height: 700px) {
+        .scenic-player__nw-desc {
+          -webkit-line-clamp: 2;
+          line-clamp: 2;
+        }
+        .scenic-player__nw-epname { margin-top: 0.5rem; }
       }
     }
   }
@@ -720,13 +746,13 @@ $glass: rgba(16, 16, 24, 0.66);
     }
   }
 
+  // The shell no longer scrolls — the list inside does. That keeps the header
+  // pinned and gives the bottom fade something stationary to sit on.
   &__srcmenu {
     position: absolute;
     top: calc(100% + 6px);
     left: 0;
     min-width: 230px;
-    max-height: 320px;
-    overflow-y: auto;
     padding: 0.4rem;
     border-radius: 14px;
     background: $glass;
@@ -735,16 +761,79 @@ $glass: rgba(16, 16, 24, 0.66);
     backdrop-filter: blur(18px) saturate(1.4);
     display: flex;
     flex-direction: column;
-    gap: 1px;
+    overflow: hidden;
     animation: sp-menu 0.18s ease both;
+
+    // Soft edge over the cut row. Fades to the menu's own surface so it reads
+    // as the list passing under the rim rather than a band drawn on top, and
+    // clears itself once you reach the bottom so it never implies more than
+    // there is.
+    &::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 46px;
+      background: linear-gradient(180deg, rgba(16, 16, 24, 0), rgba(16, 16, 24, 0.92));
+      pointer-events: none;
+      opacity: 1;
+      transition: opacity 0.2s ease;
+    }
+    &.is-end::after { opacity: 0; }
+  }
+
+  &__srcmenu-list {
+    // Deliberately not a multiple of the row height: the list is cut through
+    // the middle of a row so a sliver of the next one shows. A half-visible
+    // row is the signal that there's more — at 320px the cut landed on a row
+    // boundary, which read as the end of the list.
+    max-height: 280px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    // Just enough that the last row clears the rim; more than this reads as an
+    // empty slot once you're at the bottom and the fade is gone.
+    padding-bottom: 0.55rem;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+
+    // The app-wide bar is near-invisible; here it's worth a little more
+    // contrast, since its length is the only cue for how long the list is.
+    &::-webkit-scrollbar { width: 4px; }
+    &::-webkit-scrollbar-track { background: transparent; }
+    &::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.22);
+      border-radius: 10px;
+    }
+    &::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.36); }
   }
   &__srcmenu-title {
-    padding: 0.4rem 0.55rem 0.35rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    flex: none;
+    padding: 0.4rem 0.55rem 0.45rem;
     font-size: 0.64rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.13em;
     color: rgba(255, 255, 255, 0.4);
+  }
+
+  // How many sources exist, stated up front rather than discovered by scrolling.
+  &__srcmenu-count {
+    padding: 0.1rem 0.4rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: rgba(255, 255, 255, 0.6);
+    font-variant-numeric: tabular-nums;
   }
 
   &__srcmenu &__source-item {
