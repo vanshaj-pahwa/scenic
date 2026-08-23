@@ -68,6 +68,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  // The title side grows until it meets the controls, so with no gap the
+  // next-episode button ended up flush against the server hint — touching at
+  // 1024px and below, which is most laptop windows. This keeps the two sides
+  // apart; the title truncates a little sooner instead.
+  gap: 1rem;
   padding: 0.875rem 1.25rem;
   background: rgba(255, 255, 255, 0.03);
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
@@ -183,6 +188,7 @@
   align-items: center;
   gap: 0.75rem;
   flex-shrink: 0;
+  min-width: 0;
 
   @include mobile {
     gap: 0.35rem;

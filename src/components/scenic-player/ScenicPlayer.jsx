@@ -154,6 +154,11 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
   const [showHelp, setShowHelp] = useState(false); // keyboard shortcuts overlay
   const [seekFx, setSeekFx] = useState(null); // { side, amount } double-tap seek ripple
   const [pendingName, setPendingName] = useState(""); // name of the source being switched to
+  // The source list is taller than the menu, and people were missing the items
+  // past the fold. Tracks whether the list is scrolled to the bottom so the
+  // "more below" edge fade can turn itself off once there genuinely is no more.
+  const [srcAtEnd, setSrcAtEnd] = useState(true);
+  const srcListRef = useRef(null);
   const [sourceList, setSourceList] = useState([]); // [{src, type, subs}] all available sources
   sourceListRef.current = sourceList;
   const [srcIdx, setSrcIdx] = useState(0); // which ordered source to resolve (0 = primary)
@@ -417,6 +422,23 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
     setCountdown(null);
     if (hasNextRef.current && onNextRef.current) onNextRef.current();
   }, []);
+
+  const syncSrcAtEnd = useCallback(() => {
+    const el = srcListRef.current;
+    if (!el) return;
+    setSrcAtEnd(el.scrollTop + el.clientHeight >= el.scrollHeight - 2);
+  }, []);
+
+  // On open, bring the active source into view — with 16 sources, someone on
+  // Cosmos would otherwise open the menu at the top and have to hunt for the
+  // row they're already on.
+  useEffect(() => {
+    if (menu !== "source") return;
+    const el = srcListRef.current;
+    if (!el) return;
+    el.querySelector(".sel")?.scrollIntoView({ block: "nearest" });
+    syncSrcAtEnd();
+  }, [menu, syncSrcAtEnd]);
 
   useEffect(() => {
     const v = videoRef.current;
@@ -954,26 +976,38 @@ const ScenicPlayer = ({ media, title, subtitle, onFatal, onNext, hasNext }) => {
             <span className="scenic-player__srcbtn-chev">{Ic.chevron}</span>
           </button>
           {menu === "source" && (
-            <div className="scenic-player__srcmenu">
-              <div className="scenic-player__srcmenu-title">Select source</div>
-              {sourceList.map((s, i) => {
-                const active = s.src === srcIdx;
-                const failed = failedRef.current[s.src];
-                return (
-                  <button
-                    key={s.src}
-                    className={`scenic-player__source-item${active ? " sel" : ""}${failed ? " is-failed" : ""}`}
-                    onClick={() => jumpToSource(s.src)}
-                  >
-                    <span className="scenic-player__source-item-name">{SOURCE_NAMES[i] || `Source ${i + 1}`}</span>
-                    <span className="scenic-player__source-tags">
-                      {active && qualityTag && <em className="is-q">{qualityTag}</em>}
-                      {s.subs > 0 && <em>{s.subs} CC</em>}
-                      {failed && <em className="is-bad">off</em>}
-                    </span>
-                  </button>
-                );
-              })}
+            <div className={`scenic-player__srcmenu${srcAtEnd ? " is-end" : ""}`}>
+              {/* Header sits outside the scroller so it stays put, and carries
+                  the total — the count is how you learn the list is long
+                  before you start scrolling it. */}
+              <div className="scenic-player__srcmenu-title">
+                Select source
+                <span className="scenic-player__srcmenu-count">{sourceList.length}</span>
+              </div>
+              <div
+                className="scenic-player__srcmenu-list"
+                ref={srcListRef}
+                onScroll={syncSrcAtEnd}
+              >
+                {sourceList.map((s, i) => {
+                  const active = s.src === srcIdx;
+                  const failed = failedRef.current[s.src];
+                  return (
+                    <button
+                      key={s.src}
+                      className={`scenic-player__source-item${active ? " sel" : ""}${failed ? " is-failed" : ""}`}
+                      onClick={() => jumpToSource(s.src)}
+                    >
+                      <span className="scenic-player__source-item-name">{SOURCE_NAMES[i] || `Source ${i + 1}`}</span>
+                      <span className="scenic-player__source-tags">
+                        {active && qualityTag && <em className="is-q">{qualityTag}</em>}
+                        {s.subs > 0 && <em>{s.subs} CC</em>}
+                        {failed && <em className="is-bad">off</em>}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>

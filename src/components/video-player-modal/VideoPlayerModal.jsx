@@ -136,10 +136,14 @@ const VideoPlayerModal = ({
                 </span>
               </button>
             )}
+            {/* Shortest wording that still does the job — this sits between the
+                episode nav and the server control, and every character it costs
+                comes out of the title. "Switch server" matches the wording used
+                by the mobile hint and the mirror hint. */}
             <span className="server-hint">
               {mirrorCount > 1
                 ? "If none load, switch server →"
-                : "Video not loading? Try changing server →"}
+                : "Not loading? Switch server →"}
             </span>
             <div className="server-dropdown">
               <button
