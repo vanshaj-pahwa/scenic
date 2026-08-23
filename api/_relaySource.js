@@ -70,10 +70,10 @@ function collectStreams(node, acc) {
 }
 
 // Id-native subtitles, routed through the proxy so they load same-origin.
-async function relaySubs({ type, id, season, episode }) {
+async function relaySubs({ type, id, season, episode }, tries) {
   if (!RELAY_SUB_BASE) return [];
   const path = type === "tv" ? `/v2/tv/${id}/${season}/${episode}` : `/v2/movie/${id}`;
-  const res = await tryFetch(`${RELAY_SUB_BASE}${path}`, { headers: { "User-Agent": UA } });
+  const res = await tryFetch(`${RELAY_SUB_BASE}${path}`, { headers: { "User-Agent": UA } }, tries);
   if (!res.ok) return [];
   const list = await res.json().catch(() => null);
   if (!Array.isArray(list)) return [];
@@ -88,7 +88,9 @@ async function relaySubs({ type, id, season, episode }) {
     }));
 }
 
-async function getRelaySource({ type, id, season, episode, candidate = 0 }) {
+async function getRelaySource({ type, id, season, episode, candidate = 0, probe = false }) {
+  // Single attempt while probing the list; retries belong in resolveStream.
+  const tries = probe ? 1 : 4;
   if (!RELAY_BASE || !PROVIDERS.length) return { stream: { url: null, _diag: { stage: "unconfigured" } }, total: 0 };
 
   const total = PROVIDERS.length;
@@ -96,7 +98,7 @@ async function getRelaySource({ type, id, season, episode, candidate = 0 }) {
   const provider = PROVIDERS[candidate];
 
   const path = type === "tv" ? `/${provider}/tv/${id}/${season}/${episode}` : `/${provider}/movie/${id}`;
-  const res = await tryFetch(`${RELAY_BASE}${path}`, { headers: { "User-Agent": UA, Referer: `${RELAY_BASE}/` } });
+  const res = await tryFetch(`${RELAY_BASE}${path}`, { headers: { "User-Agent": UA, Referer: `${RELAY_BASE}/` } }, tries);
   if (!res.ok) return { stream: { url: null, _diag: { stage: "fetch", status: res.status, provider } }, total };
 
   const j = await res.json().catch(() => null);
@@ -119,7 +121,7 @@ async function getRelaySource({ type, id, season, episode, candidate = 0 }) {
 
   const chosen = streams[0];
   const headers = { Referer: RELAY_REFERER || `${RELAY_BASE}/`, "User-Agent": UA };
-  const subtitles = await relaySubs({ type, id, season, episode });
+  const subtitles = await relaySubs({ type, id, season, episode }, tries);
   // HLS goes through the proxy (Referer/CORS); a direct MP4 plays as-is.
   return {
     stream: {

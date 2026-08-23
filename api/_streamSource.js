@@ -18,10 +18,10 @@ function slugify(s) {
     .replace(/^-+|-+$/g, "");
 }
 
-async function tmdbMeta({ type, id }) {
+async function tmdbMeta({ type, id }, tries) {
   if (!TMDB_KEY) return null;
   const path = type === "tv" ? `tv/${id}` : `movie/${id}`;
-  const res = await tryFetch(`https://api.themoviedb.org/3/${path}?api_key=${TMDB_KEY}`);
+  const res = await tryFetch(`https://api.themoviedb.org/3/${path}?api_key=${TMDB_KEY}`, undefined, tries);
   if (!res.ok) return null;
   const j = await res.json();
   return type === "tv"
@@ -52,27 +52,30 @@ async function tryFetch(url, opts, tries = 4) {
   return { ok: false, status: last, headers: new Map(), text: async () => null, json: async () => null };
 }
 
-async function getPage(url, cookie) {
-  const res = await tryFetch(url, {
-    headers: { "User-Agent": UA, ...(cookie.v ? { Cookie: cookie.v } : {}) },
-  });
+async function getPage(url, cookie, tries) {
+  const res = await tryFetch(
+    url,
+    { headers: { "User-Agent": UA, ...(cookie.v ? { Cookie: cookie.v } : {}) } },
+    tries
+  );
   const sc = res.headers.get ? res.headers.get("set-cookie") : null;
   if (sc) cookie.v = sc.split(";")[0];
   return { status: res.status, text: res.ok ? await res.text() : null };
 }
 
 
-async function getStreamSource({ type, id, season, episode }) {
+async function getStreamSource({ type, id, season, episode, probe = false }) {
+  const tries = probe ? 1 : 4;
   if (!CATALOG_BASE || !PLAYER_ACTION) return { url: null, _diag: { stage: "unconfigured" } };
 
-  const meta = await tmdbMeta({ type, id });
+  const meta = await tmdbMeta({ type, id }, tries);
   if (!meta || !meta.title) return { url: null, _diag: { stage: "tmdb" } };
 
   const cookie = { v: "" };
-  await getPage(`${CATALOG_BASE}/`, cookie);
+  await getPage(`${CATALOG_BASE}/`, cookie, tries);
 
   const path = pagePath({ type, meta, season, episode });
-  const page = await getPage(`${CATALOG_BASE}${path}?nc=${Date.now()}`, cookie);
+  const page = await getPage(`${CATALOG_BASE}${path}?nc=${Date.now()}`, cookie, tries);
   if (!page.text) return { url: null, _diag: { stage: "page", status: page.status } };
 
   const nonce = page.text.match(/"nonce":"([a-f0-9]+)"/)?.[1];
@@ -92,7 +95,7 @@ async function getStreamSource({ type, id, season, episode }) {
       Referer: `${CATALOG_BASE}${path}`,
     },
     body: `action=${PLAYER_ACTION}&nonce=${nonce}&post=${post}&type=${ptype}&nume=${num}`,
-  });
+  }, tries);
   if (!ajax.ok) return { url: null, _diag: { stage: "ajax", status: ajax.status } };
 
   const j = await ajax.json().catch(() => null);
@@ -104,7 +107,8 @@ async function getStreamSource({ type, id, season, episode }) {
 
   // The embed host throws intermittent origin errors; retry to get the manifest.
   let master = null;
-  for (let i = 0; i < 6 && !master; i++) {
+  const masterTries = probe ? 1 : 6;
+  for (let i = 0; i < masterTries && !master; i++) {
     try {
       const r = await fetch(iframe, { headers: { "User-Agent": UA, Referer: `${CATALOG_BASE}/` } });
       if (r.ok) {

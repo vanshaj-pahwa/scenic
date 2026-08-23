@@ -31,19 +31,19 @@ function absolute(base, path) {
 }
 
 // Resolve one playlist candidate to its HLS master URL (null if it has none).
-async function candidateMaster(base, path, headers) {
+async function candidateMaster(base, path, headers, tries) {
   const abs = absolute(base, path);
   if (!abs) return null;
-  const res = await tryFetch(abs, { headers });
+  const res = await tryFetch(abs, { headers }, tries);
   if (!res.ok) return null;
   const j = await res.json().catch(() => null);
   const sources = j?.playlist?.[0]?.sources || [];
   return (sources.find((s) => /hls/i.test(s.type || "") || /\.m3u8/i.test(s.file || "")) || sources[0])?.file || null;
 }
 
-async function subtitles(base, subUrl, headers) {
+async function subtitles(base, subUrl, headers, tries) {
   if (!subUrl) return [];
-  const res = await tryFetch(subUrl, { headers });
+  const res = await tryFetch(subUrl, { headers }, tries);
   if (!res.ok) return [];
   const list = await res.json().catch(() => null);
   if (!Array.isArray(list)) return [];
@@ -62,14 +62,17 @@ async function subtitles(base, subUrl, headers) {
 // profile and some produce bitstreams the browser can't decode, so a single
 // `candidate` is resolved per call and the client walks to the next on failure.
 // Returns { stream, total } where total is the number of encodes available.
-async function getMirrorSource({ type, id, season, episode, candidate = 0 }) {
+async function getMirrorSource({ type, id, season, episode, candidate = 0, probe = false }) {
+  // Probing the source list is a yes/no question; retrying it multiplies load on
+  // the embed host for no extra information.
+  const tries = probe ? 1 : 4;
   if (!MIRROR_BASE) return { stream: { url: null, _diag: { stage: "unconfigured" } }, total: 0 };
 
   const path = type === "tv" ? `/e/tv/${id}/${season}/${episode}` : `/e/movie/${id}`;
   const referer = `${MIRROR_BASE}/`;
   const headers = { "User-Agent": UA, Referer: referer };
 
-  const page = await tryFetch(`${MIRROR_BASE}${path}?autostart=true`, { headers });
+  const page = await tryFetch(`${MIRROR_BASE}${path}?autostart=true`, { headers }, tries);
   const html = page.ok ? await page.text() : null;
   if (!html) return { stream: { url: null, _diag: { stage: "embed", status: page.status } }, total: 0 };
 
@@ -79,7 +82,7 @@ async function getMirrorSource({ type, id, season, episode, candidate = 0 }) {
   const total = candidates.length;
   if (candidate >= total) return { stream: { url: null, _diag: { stage: "exhausted" } }, total };
 
-  const master = await candidateMaster(MIRROR_BASE, candidates[candidate], headers);
+  const master = await candidateMaster(MIRROR_BASE, candidates[candidate], headers, tries);
   if (!master) return { stream: { url: null, _diag: { stage: "master", candidate } }, total };
 
   const subUrl = html.match(/var\s+suburl\s*=\s*"([^"]+)"/)?.[1] || null;
@@ -88,7 +91,7 @@ async function getMirrorSource({ type, id, season, episode, candidate = 0 }) {
     stream: {
       type: "hls",
       url: proxied(master, { Referer: referer, "User-Agent": UA }),
-      subtitles: await subtitles(MIRROR_BASE, subUrl, headers),
+      subtitles: await subtitles(MIRROR_BASE, subUrl, headers, tries),
     },
     total,
   };

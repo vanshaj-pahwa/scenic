@@ -53,17 +53,43 @@ const withTimeout = (p) =>
     new Promise((res) => setTimeout(() => res(null), CANDIDATE_TIMEOUT_MS)),
   ]);
 
-// Resolve every configured source in parallel and return the ones that resolved,
-// ordered by index, with light metadata for the source picker.
+// Listing used to fire all 17 candidates at once, each retrying 4x at several
+// stages — roughly 180 requests against four hosts per call. The hosts answered
+// with 403s and the working sources got starved inside the timeout, so the list
+// came back short or empty while individual sources still resolved in under a
+// second. Probing is now single-attempt (retries belong in resolveStream, once
+// someone has actually picked a source) and runs a few at a time.
+const PROBE_CONCURRENCY = 4;
+
+async function mapLimited(items, limit, fn) {
+  const out = new Array(items.length);
+  let next = 0;
+  const worker = async () => {
+    while (next < items.length) {
+      const i = next++;
+      out[i] = await fn(items[i]);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return out;
+}
+
+// Resolve every configured source and return the ones that resolved, ordered by
+// index, with light metadata for the source picker.
 async function listSources({ type, id, season, episode }) {
-  const args = { type, id, season, episode };
-  const jobs = [];
+  // `probe` tells the source modules to try once instead of retrying.
+  const args = { type, id, season, episode, probe: true };
+
+  const candidates = [];
   for (const tier of TIERS) {
     if (!tier.ok()) continue;
     for (let c = 0; c < tier.slots; c++) {
-      const src = tier.base + c;
-      jobs.push(
-        withTimeout(tier.resolve(args, c))
+      candidates.push({ tier, c, src: tier.base + c });
+    }
+  }
+
+  const jobs = await mapLimited(candidates, PROBE_CONCURRENCY, ({ tier, c, src }) =>
+    withTimeout(tier.resolve(args, c))
           .then((r) =>
             r?.stream?.url
               ? {
@@ -76,11 +102,9 @@ async function listSources({ type, id, season, episode }) {
                 }
               : null
           )
-          .catch(() => null)
-      );
-    }
-  }
-  return (await Promise.all(jobs)).filter(Boolean).sort((a, b) => a.src - b.src);
+      .catch(() => null)
+  );
+  return jobs.filter(Boolean).sort((a, b) => a.src - b.src);
 }
 
 module.exports = { resolveStream, listSources };
