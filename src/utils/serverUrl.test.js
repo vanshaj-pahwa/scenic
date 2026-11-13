@@ -10,7 +10,7 @@ const SEASON = 2;
 const EPISODE = 5;
 
 beforeAll(() => {
-  for (let i = 1; i <= 13; i++) {
+  for (let i = 1; i <= 15; i++) {
     process.env[`REACT_APP_MOVIE_SERVER${i}`] = `https://m${i}/`;
     process.env[`REACT_APP_TV_SERVER${i}`] = `https://t${i}/`;
   }
@@ -31,6 +31,8 @@ const expectedMovie = [
   `https://m11/${ID}?theme=6366f1&startAt=15`,
   `https://m12/${ID}`,
   `https://m13/${ID}`,
+  `https://m14/${ID}`,
+  `https://m15/${ID}?skin=onyx&welcome_page=on&autoplay=off`,
 ];
 
 const expectedTv = [
@@ -47,6 +49,8 @@ const expectedTv = [
   `https://t11/${ID}/${SEASON}/${EPISODE}?theme=6366f1&startAt=15`,
   `https://t12/${ID}&tmdb=1&s=${SEASON}&e=${EPISODE}`,
   `https://t13/${ID}/${SEASON}/${EPISODE}`,
+  `https://t14/${ID}/${SEASON}/${EPISODE}`,
+  `https://t15/${ID}/${SEASON}/${EPISODE}?skin=onyx&welcome_page=on&autoplay=off`,
 ];
 
 describe("buildServerUrl - movies", () => {

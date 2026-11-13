@@ -5,6 +5,7 @@ const SUFFIX = {
   3: "?autoplay=true&colour=6366f1",
   9: "?autoplay=true",
   10: "?theme=6366f1&startAt=15",
+  14: "?skin=onyx&welcome_page=on&autoplay=off",
 };
 
 export const buildServerUrl = ({
