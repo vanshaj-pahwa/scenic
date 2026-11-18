@@ -1,9 +1,0 @@
-{
-  "rewrites": [
-    { "source": "/api/tmdb/:path*", "destination": "/api/tmdb?proxyPath=:path*" },
-    { "source": "/api/download/:path*", "destination": "/api/download?path=:path*" },
-    { "source": "/movie/:id(\\d+)", "destination": "/api/page?type=movie&id=:id" },
-    { "source": "/tv/:id(\\d+)", "destination": "/api/page?type=tv&id=:id" },
-    { "source": "/sitemap.xml", "destination": "/api/sitemap" }
-  ]
-}

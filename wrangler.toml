@@ -1,0 +1,11 @@
+# Project name is the pages.dev hostname: https://<name>.pages.dev. Unlike
+# workers.dev there is no account subdomain, so it's always a single label —
+# stream.scenic.pages.dev isn't a thing. The name is global across Cloudflare,
+# not per-account; plain "scenic" is already taken by someone else, so this
+# mirrors the old scenic-stream.vercel.app — same name, different TLD.
+name = "scenic-stream"
+pages_build_output_dir = "build"
+compatibility_date = "2026-06-01"
+
+# Env vars are set in the Pages dashboard (Settings -> Variables and Secrets)
+# rather than here, so keys stay out of the repo. See .env.example for the list.

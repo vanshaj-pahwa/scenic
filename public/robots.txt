@@ -2,4 +2,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://scenic-stream.vercel.app/sitemap.xml
+Sitemap: https://scenic-stream.pages.dev/sitemap.xml

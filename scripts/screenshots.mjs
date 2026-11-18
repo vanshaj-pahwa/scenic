@@ -2,7 +2,7 @@ import { chromium } from "playwright";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 
-const BASE = (process.env.SCENIC_URL || "https://scenic-stream.vercel.app").replace(/\/$/, "");
+const BASE = (process.env.SCENIC_URL || "https://scenic-stream.pages.dev").replace(/\/$/, "");
 const OUT = join(dirname(fileURLToPath(import.meta.url)), "..", "docs", "screenshots");
 
 const log = (...a) => console.log("[screenshots]", ...a);

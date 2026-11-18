@@ -6,11 +6,11 @@
 
 Stream movies, TV series, and anime from various publicly available servers, for free. Whether you're searching for the latest blockbuster or discovering a hidden gem, Scenic has you covered.
 
-[![Live demo](https://img.shields.io/badge/Live%20demo-scenic--stream.vercel.app-6366f1?style=plastic&logo=vercel&logoColor=white)](https://scenic-stream.vercel.app)
+[![Live demo](https://img.shields.io/badge/Live%20demo-scenic--stream.pages.dev-6366f1?style=plastic&logo=cloudflarepages&logoColor=white)](https://scenic-stream.pages.dev)
 [![TMDB](https://img.shields.io/badge/Data-TMDB-01B4E4?style=plastic&logo=themoviedatabase&logoColor=white)](https://www.themoviedb.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=plastic)](LICENSE)
 
-[Live demo](https://scenic-stream.vercel.app) · [Report a bug](https://github.com/vanshaj-pahwa/scenic/issues/new?labels=bug) · [Request a feature](https://github.com/vanshaj-pahwa/scenic/issues/new?labels=enhancement)
+[Live demo](https://scenic-stream.pages.dev) · [Report a bug](https://github.com/vanshaj-pahwa/scenic/issues/new?labels=bug) · [Request a feature](https://github.com/vanshaj-pahwa/scenic/issues/new?labels=enhancement)
 
 </div>
 
@@ -94,7 +94,7 @@ There is no sign-up and no backend database. Your watchlist, continue-watching h
 | Data | [TMDB API](https://developer.themoviedb.org) |
 | HTTP | [Axios](https://axios-http.com) with interceptors |
 | Browser APIs | Web Speech (voice search), `localStorage` (watchlist, history, progress) |
-| Edge functions | [Vercel](https://vercel.com/docs/functions) for the TMDB proxy, detail-page rendering, sitemap, and download proxy |
+| Hosting and edge functions | [Cloudflare Pages](https://developers.cloudflare.com/pages/) with [Pages Functions](https://developers.cloudflare.com/pages/functions/) for the TMDB proxy, detail-page rendering, sitemap, and download proxy |
 | Icons | [Boxicons](https://boxicons.com), [Font Awesome](https://fontawesome.com) |
 
 ## Screenshots
@@ -114,7 +114,7 @@ There is no sign-up and no backend database. Your watchlist, continue-watching h
 
 <p align="center"><img src="docs/screenshots/providers.png" alt="Streaming by provider and region" width="85%" /><br><sub>Streaming by provider and region</sub></p>
 
-See it all on the [live demo](https://scenic-stream.vercel.app).
+See it all on the [live demo](https://scenic-stream.pages.dev).
 
 ## How it works
 
@@ -162,7 +162,7 @@ Scenic does not host or store any video. The streaming sources are third-party s
 
 ## Under the hood
 
-Scenic is a Create React App single-page app with a few Vercel edge functions for things a static SPA cannot do on its own: hiding the API key, rendering detail-page meta tags for link previews and SEO, and proxying downloads.
+Scenic is a Create React App single-page app hosted on Cloudflare Pages, with a few Pages Functions for things a static SPA cannot do on its own: hiding the API key, rendering detail-page meta tags for link previews and SEO, and proxying downloads.
 
 ```mermaid
 flowchart LR
@@ -172,9 +172,9 @@ flowchart LR
     tmdb["TMDB API"]
     backend["Download backend"]
 
-    subgraph edge["Vercel edge functions"]
-        page["/api/page<br/>render + meta + JSON-LD"]
-        sitemap["/api/sitemap"]
+    subgraph edge["Cloudflare Pages Functions"]
+        page["/movie/:id, /tv/:id<br/>render + meta + JSON-LD"]
+        sitemap["/sitemap.xml"]
         proxy["/api/tmdb<br/>key proxy"]
         dl["/api/download"]
     end
@@ -192,7 +192,9 @@ flowchart LR
 - `src/api` holds `axiosClient`, `apiConfig`, and `tmdbApi`; all TMDB access goes through here.
 - `src/utils` powers search and persistence: `parseSmartQuery` and `searchResolver` turn a plain-language query into TMDB calls, and `watchlist`, `continueWatching`, and `watchedEpisodes` are small `localStorage` stores that emit an event on change so every component stays in sync.
 - `src/hooks` holds reusable behavior: search suggestions, the typewriter placeholder, document title, download availability, and keyboard navigation.
-- `api/` holds the edge functions: `page.js` injects per-title meta tags and JSON-LD, `sitemap.js` builds the sitemap, and `vercel.json` wires up the routes.
+- `functions/` holds the Pages Functions, routed by file path: `movie/[id].js` and `tv/[id].js` inject per-title meta tags and JSON-LD, `sitemap.xml.js` builds the sitemap, and `api/` has the TMDB, download, stream, and subtitle endpoints.
+- `lib/` holds the code those functions share, such as `page.js` (detail-page rendering) and `env.js` (reads the Pages environment per request).
+- `worker/` is a standalone Cloudflare Worker that proxies HLS segments; point `PROXY_BASE` at its deployed URL.
 
 ## Getting started
 
@@ -244,10 +246,12 @@ Create a `.env` file in the project root:
 REACT_APP_API_KEY=your_tmdb_api_key      # client, in development
 TMDB_API_KEY=your_tmdb_api_key           # edge functions (render, sitemap, proxy)
 
-# Streaming servers (movie and TV pairs, up to 10)
+# Streaming servers (movie and TV pairs, up to 16)
 REACT_APP_MOVIE_SERVER1=https://example.com/embed/movie/
 REACT_APP_TV_SERVER1=https://example.com/embed/tv/
-# ...repeat through REACT_APP_MOVIE_SERVER10 / REACT_APP_TV_SERVER10
+# ...repeat through REACT_APP_MOVIE_SERVER16 / REACT_APP_TV_SERVER16
+REACT_APP_SERVER8_DOMAINS=mirror1.example,mirror2.example   # Server 8 hosts
+REACT_APP_SERVER7_MIRRORS=fallback.example                  # Server 7 fallback hosts
 
 # Downloads (optional)
 DOWNLOAD_BASE_URL=https://your-download-backend.example.com
@@ -257,10 +261,12 @@ DOWNLOAD_BASE_URL=https://your-download-backend.example.com
 |----------|:--------:|---------|---------|
 | `REACT_APP_API_KEY` | yes | client | TMDB requests during local development |
 | `TMDB_API_KEY` | yes (prod) | edge functions | TMDB requests from `/api/page`, `/api/sitemap`, `/api/tmdb` |
-| `REACT_APP_MOVIE_SERVERn` / `REACT_APP_TV_SERVERn` | yes | client | Streaming embeds (n = 1..10) |
+| `REACT_APP_MOVIE_SERVERn` / `REACT_APP_TV_SERVERn` | yes | client | Streaming embeds (n = 1..16, except 8) |
+| `REACT_APP_SERVER8_DOMAINS` | no | client | Comma-separated hosts Server 8 rotates through |
+| `REACT_APP_SERVER7_MIRRORS` | no | client | Comma-separated fallback hosts for Server 7's "Try another source" button |
 | `DOWNLOAD_BASE_URL` | no | `/api/download` | Backend that resolves downloadable files |
 
-On Vercel, add these under Project, Settings, Environment Variables.
+`REACT_APP_*` values are baked into the bundle at build time, so they must be set wherever the build runs. When you build locally and deploy with Wrangler, that means `.env.production.local`. Variables the functions read at runtime, such as `TMDB_API_KEY` and `DOWNLOAD_BASE_URL`, go in the Cloudflare dashboard under your Pages project, Settings, Variables and Secrets.
 
 ## Available scripts
 
@@ -270,6 +276,8 @@ On Vercel, add these under Project, Settings, Environment Variables.
 | `npm run build` | Production build into `build/` |
 | `npm test` | Run the test runner |
 | `CI=true npm run build` | Build with warnings treated as errors |
+| `npx wrangler pages dev build` | Serve the production build with the Pages Functions locally |
+| `npx wrangler pages deploy build --project-name scenic-stream` | Deploy the build to Cloudflare Pages |
 
 ## Application routes
 
@@ -287,9 +295,9 @@ On Vercel, add these under Project, Settings, Environment Variables.
 
 ## SEO and performance
 
-- `vercel.json` rewrites `/movie/:id` and `/tv/:id` to `api/page.js`, which fetches the title from TMDB and injects a real `<title>`, a synopsis `<meta description>`, a canonical link, Open Graph and Twitter tags, and `Movie`/`TVSeries` JSON-LD (rating, cast, genres) into `index.html`.
+- `functions/movie/[id].js` and `functions/tv/[id].js` serve `/movie/:id` and `/tv/:id` through `lib/page.js`, which fetches the title from TMDB and injects a real `<title>`, a synopsis `<meta description>`, a canonical link, Open Graph and Twitter tags, and `Movie`/`TVSeries` JSON-LD (rating, cast, genres) into `index.html`.
 - The home page carries `WebSite` and `Organization` JSON-LD, validated against Google's Rich Results Test.
-- `/sitemap.xml` is served by `api/sitemap.js` and lists the landing pages plus trending, popular, and top-rated detail URLs. It is referenced from `robots.txt`.
+- `/sitemap.xml` is served by `functions/sitemap.xml.js` and lists the landing pages plus trending, popular, and top-rated detail URLs. It is referenced from `robots.txt`.
 - Routes are lazy-loaded, and the app uses skeleton placeholders, a route-progress bar, and scroll restoration.
 
 ## Contributing

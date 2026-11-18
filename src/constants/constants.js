@@ -13,6 +13,8 @@ export const servers = [
   "Server 12",
   "Server 13",
   "Server 14",
+  "Server 15",
+  "Server 16",
 ];
 
 // Sentinel index for the ad-free HLS player; kept out of `servers` so iframe
@@ -22,10 +24,27 @@ export const AD_FREE_LABEL = "Scenic+";
 // Env-driven so Scenic+ can be toggled per environment. Defaults off.
 export const AD_FREE_ENABLED = process.env.REACT_APP_ADFREE_ENABLED === "true";
 
-export const server8Domains = (process.env.REACT_APP_SERVER8_DOMAINS || "")
-  .split(",")
-  .map((s) => s.trim())
-  .filter(Boolean);
+const hostList = (v) =>
+  (v || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+export const server8Domains = hostList(process.env.REACT_APP_SERVER8_DOMAINS);
+
+// Alternate hosts for env-based servers, keyed by server index. The configured
+// base URL is mirror 1; each host here is tried next with the same path, via the
+// "Try another source" button.
+export const serverMirrors = {
+  6: hostList(process.env.REACT_APP_SERVER7_MIRRORS),
+};
+
+// How many hosts the "Try another source" button cycles through for a server.
+export const mirrorCountFor = (index) => {
+  if (index === 7) return server8Domains.length;
+  const extra = serverMirrors[index]?.length || 0;
+  return extra ? extra + 1 : 0;
+};
 
 export const SOURCE_NAMES = [
   "Nova", "Pulse", "Orbit", "Comet", "Prime", "Apex", "Vega", "Vortex",

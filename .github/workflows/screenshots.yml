@@ -30,7 +30,7 @@ jobs:
       - name: Capture screenshots
         run: node scripts/screenshots.mjs
         env:
-          SCENIC_URL: https://scenic-stream.vercel.app
+          SCENIC_URL: https://scenic-stream.pages.dev
 
       - name: Commit updated screenshots
         run: |

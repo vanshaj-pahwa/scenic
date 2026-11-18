@@ -1,0 +1,4 @@
+# SPA fallback: client-side routes (/search, /movie, /anime, …) have no file on
+# disk, so anything that isn't a static asset or a Function renders the shell and
+# lets react-router take over. Functions and real assets are matched first.
+/*    /index.html   200

@@ -4,7 +4,7 @@ import apiConfig from "../../../api/apiConfig";
 import tmdbApi from "../../../api/tmdbApi";
 import Loading from "../../../components/loading/Loading";
 import VideoPlayerModal from "../../../components/video-player-modal/VideoPlayerModal";
-import { server8Domains, AD_FREE_SERVER, AD_FREE_ENABLED } from "../../../constants/constants";
+import { mirrorCountFor, AD_FREE_SERVER, AD_FREE_ENABLED } from "../../../constants/constants";
 import { buildServerUrl } from "../../../utils/serverUrl";
 import { watchedEpisodes } from "../../../utils/watchedEpisodes";
 import useListboxKeyboard from "../../../hooks/useListboxKeyboard";
@@ -192,9 +192,10 @@ const SeriesVideoPlayer = ({
   };
 
   const handleServerSelect = (index) => {
-    if (index === 7 && server8Domains.length) {
-      mirrorRef.current = (mirrorRef.current + 1) % server8Domains.length;
-    }
+    // Re-picking the same server advances to its next mirror; a different
+    // server starts from its first host.
+    const count = mirrorCountFor(index);
+    if (count) mirrorRef.current = index === selectedServer ? (mirrorRef.current + 1) % count : 0;
     handleServerClick(index);
   };
 
@@ -373,7 +374,7 @@ const SeriesVideoPlayer = ({
         subtitle={getCurrentEpisodeSubtitle()}
         onServerChange={handleServerSelect}
         selectedServer={selectedServer}
-        mirrorCount={selectedServer === 7 ? server8Domains.length : 0}
+        mirrorCount={mirrorCountFor(selectedServer)}
         mirrorIndex={Math.max(mirrorRef.current, 0) + 1}
         onPrevious={handlePreviousEpisode}
         onNext={handleNextEpisode}

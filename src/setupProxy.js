@@ -1,109 +1,73 @@
-// Dev-only: makes /api/* routes work under `npm start` (where Vercel functions
-// don't run). Mirrors the api/*.js handlers. In production the Vercel functions
-// serve these routes instead. Runs in the CRA dev server's Node process.
-const { resolveStream, listSources } = require("../api/_sources");
-const { listSubtitles, downloadVtt } = require("../api/_subtitle");
+// Dev-only: makes /api/* work under `npm start`, where Pages Functions don't
+// run. Rather than reimplementing the handlers (the previous version kept its
+// own copy of the HLS proxy, which drifted), this loads the same lib/ modules
+// the Functions use and bridges Express req/res to the Web Request/Response
+// they speak. Runs in the CRA dev server's Node process.
+//
+// lib/ is ESM and this file must stay CommonJS, so it's pulled in with a lazy
+// dynamic import.
+const { Readable } = require("node:stream");
+
+let libsPromise = null;
+function libs() {
+  if (!libsPromise) {
+    libsPromise = (async () => {
+      const [env, sources, subtitle, hlsProxy] = await Promise.all([
+        import("../lib/env.js"),
+        import("../lib/sources.js"),
+        import("../lib/subtitle.js"),
+        import("../lib/hlsProxy.js"),
+      ]);
+      // The Functions bind context.env per request; in dev the equivalent is
+      // whatever CRA loaded from .env.local into process.env.
+      env.bindEnv(process.env);
+      return { ...sources, ...subtitle, ...hlsProxy };
+    })();
+  }
+  return libsPromise;
+}
 
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
   "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
 
-const isPlaylist = (url, contentType) =>
-  /\.m3u8(\?|$)/i.test(url) || /mpegurl/i.test(contentType || "");
-
-function srtToVtt(srt) {
-  const body = srt
-    .replace(/^﻿/, "")
-    .replace(/\r+/g, "")
-    .replace(/(\d{2}:\d{2}:\d{2}),(\d{3})/g, "$1.$2");
-  return `WEBVTT\n\n${body.trim()}\n`;
-}
-
-async function fetchRetry(url, opts, tries = 4) {
-  let last = null;
-  for (let i = 0; i < tries; i++) {
-    try {
-      const res = await fetch(url, opts);
-      if (res.status < 500) return res;
-      last = res;
-    } catch {
-      last = null;
-    }
+// Express req -> Web Request. `mount` is the path the handler was mounted at,
+// since Express strips it from req.url.
+function toWebRequest(req, mount) {
+  const url = `http://${req.headers.host || "localhost"}${mount}${req.url === "/" ? "" : req.url}`;
+  const headers = new Headers();
+  for (const [k, v] of Object.entries(req.headers)) {
+    if (typeof v === "string") headers.set(k, v);
   }
-  if (last) return last;
-  throw new Error("upstream unreachable");
+  return new Request(url, { method: req.method, headers });
 }
 
-function rewriteManifest(text, baseUrl, hParam) {
-  const wrap = (u) => {
-    const abs = new URL(u, baseUrl).toString();
-    return `/api/hls-proxy?url=${encodeURIComponent(abs)}&h=${encodeURIComponent(hParam)}`;
-  };
-  return text
-    .split("\n")
-    .map((line) => {
-      const t = line.trim();
-      if (!t) return line;
-      if (t.startsWith("#")) return line.replace(/URI="([^"]+)"/g, (_m, u) => `URI="${wrap(u)}"`);
-      return wrap(t);
-    })
-    .join("\n");
+// Web Response -> Express res, streaming the body rather than buffering it.
+async function sendWebResponse(res, webRes) {
+  res.status(webRes.status);
+  webRes.headers.forEach((v, k) => res.set(k, v));
+  if (!webRes.body) return res.end();
+  return Readable.fromWeb(webRes.body).pipe(res);
 }
 
 module.exports = function (app) {
-  // Mirrors api/hls-proxy.js — injects source headers and rewrites manifests.
+  // Same implementation the Function uses (lib/hlsProxy.js).
   app.use("/api/hls-proxy", async (req, res) => {
-    const target = req.query.url;
-    const h = req.query.h;
-    if (!target) return res.status(400).json({ error: "Missing url" });
-
-    let injected = {};
     try {
-      if (h) injected = JSON.parse(Buffer.from(h, "base64").toString("utf8"));
-    } catch {
-      /* ignore malformed headers */
-    }
-
-    try {
-      const upstream = await fetchRetry(target, {
-        headers: { "User-Agent": UA, ...injected, ...(req.headers.range ? { Range: req.headers.range } : {}) },
-      });
-      const contentType = upstream.headers.get("content-type") || "";
-      const base = upstream.url || target;
-
-      if (req.query.conv === "vtt") {
-        res.set({ "Content-Type": "text/vtt; charset=utf-8", "Cache-Control": "public, max-age=3600" });
-        return res.status(upstream.status).send(srtToVtt(await upstream.text()));
-      }
-
-      if (isPlaylist(target, contentType)) {
-        const body = rewriteManifest(await upstream.text(), base, h || "");
-        res.set({ "Content-Type": "application/vnd.apple.mpegurl", "Cache-Control": "no-store" });
-        return res.status(upstream.status).send(body);
-      }
-
-      const buf = Buffer.from(await upstream.arrayBuffer());
-      const binary = /^(video|audio|image)\//i.test(contentType) || /octet-stream|mp2t|mp4|\bts\b/i.test(contentType);
-      if (!binary && buf.slice(0, 64).toString("utf8").trimStart().startsWith("#EXTM3U")) {
-        const body = rewriteManifest(buf.toString("utf8"), base, h || "");
-        res.set({ "Content-Type": "application/vnd.apple.mpegurl", "Cache-Control": "no-store" });
-        return res.status(upstream.status).send(body);
-      }
-
-      for (const k of ["content-type", "content-range", "accept-ranges"]) {
-        const v = upstream.headers.get(k);
-        if (v) res.set(k, v);
-      }
-      return res.status(upstream.status).send(buf);
+      const { handleHlsProxy } = await libs();
+      const webRes = await handleHlsProxy(toWebRequest(req, "/api/hls-proxy"), process.env);
+      return sendWebResponse(res, webRes);
     } catch (e) {
       return res.status(502).json({ error: e.message || "Proxy failed" });
     }
   });
 
-  // Mirrors api/subtitle.js — list (all languages) + download (file_id).
+  // Mirrors functions/api/subtitle.js — list (all languages) + download (file_id).
   app.use("/api/subtitle", async (req, res) => {
     const { file_id, type = "movie", id, season, episode } = req.query || {};
     res.set("Access-Control-Allow-Origin", "*");
+    const { listSubtitles, downloadVtt } = await libs();
+
     if (file_id) {
       res.set("Content-Type", "text/vtt; charset=utf-8");
       try {
@@ -123,7 +87,7 @@ module.exports = function (app) {
     }
   });
 
-  // Mirrors api/stream.js — the ad-free HLS extractor.
+  // Mirrors functions/api/stream.js — the ad-free HLS extractor.
   app.use("/api/stream", async (req, res) => {
     const { type = "movie", id, season, episode, src } = req.query || {};
     res.set("Cache-Control", "no-store");
@@ -134,6 +98,7 @@ module.exports = function (app) {
     }
 
     try {
+      const { resolveStream } = await libs();
       const { stream, src: idx, next } = await resolveStream({
         type: type === "tv" ? "tv" : "movie",
         id,
@@ -150,12 +115,13 @@ module.exports = function (app) {
     }
   });
 
-  // Mirrors api/sources.js — the full source list for the picker.
+  // Mirrors functions/api/sources.js — the full source list for the picker.
   app.use("/api/sources", async (req, res) => {
     const { type = "movie", id, season, episode } = req.query || {};
     res.set("Cache-Control", "no-store");
     if (!id) return res.status(400).json({ error: "Missing id" });
     try {
+      const { listSources } = await libs();
       const sources = await listSources({ type: type === "tv" ? "tv" : "movie", id, season, episode });
       return res.json({ sources });
     } catch {
@@ -169,13 +135,10 @@ module.exports = function (app) {
 
     if (!BASE) return res.status(500).json({ error: "Download source not configured" });
     if (!path) return res.status(400).json({ error: "Missing path" });
-    if (typeof fetch !== "function") {
-      return res.status(500).json({ error: "Dev server needs Node 18+ for downloads" });
-    }
 
     try {
       const origin = new URL(BASE).origin;
-      const upstream = await fetch(`${BASE}/${path}`, {
+      const upstream = await fetch(`${BASE.replace(/\/+$/, "")}/${path}`, {
         headers: { "User-Agent": UA, Referer: `${origin}/`, Accept: "application/json" },
       });
       const text = await upstream.text();
