@@ -2,9 +2,9 @@ import { server8Domains } from "../constants/constants";
 
 // Per-server query suffix appended after the {id}[/{season}/{episode}] path.
 const SUFFIX = {
+  0: "?autoplay=true",
+  1: "?theme=6366f1",
   3: "?autoplay=true&colour=6366f1",
-  9: "?autoplay=true",
-  10: "?theme=6366f1&startAt=15",
   14: "?skin=onyx&welcome_page=on&autoplay=off",
 };
 

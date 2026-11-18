@@ -18,8 +18,8 @@ beforeAll(() => {
 
 // Expected URLs replicate the original (pre-refactor) per-server formulas.
 const expectedMovie = [
-  `https://m1/${ID}`,
-  `https://m2/${ID}`,
+  `https://m1/${ID}?autoplay=true`,
+  `https://m2/${ID}?theme=6366f1`,
   `https://m3/${ID}`,
   `https://m4/${ID}?autoplay=true&colour=6366f1`,
   `https://m5/${ID}`,
@@ -27,8 +27,8 @@ const expectedMovie = [
   `https://m7/${ID}`,
   `https://d0.test/embed/movie/${ID}`,
   `https://m9/${ID}`,
-  `https://m10/${ID}?autoplay=true`,
-  `https://m11/${ID}?theme=6366f1&startAt=15`,
+  `https://m10/${ID}`,
+  `https://m11/${ID}`,
   `https://m12/${ID}`,
   `https://m13/${ID}`,
   `https://m14/${ID}`,
@@ -37,8 +37,8 @@ const expectedMovie = [
 ];
 
 const expectedTv = [
-  `https://t1/${ID}/${SEASON}/${EPISODE}`,
-  `https://t2/${ID}/${SEASON}/${EPISODE}`,
+  `https://t1/${ID}/${SEASON}/${EPISODE}?autoplay=true`,
+  `https://t2/${ID}/${SEASON}/${EPISODE}?theme=6366f1`,
   `https://t3/${ID}/${SEASON}/${EPISODE}`,
   `https://t4/${ID}/${SEASON}/${EPISODE}?autoplay=true&colour=6366f1`,
   `https://t5/${ID}/${SEASON}/${EPISODE}`,
@@ -46,8 +46,8 @@ const expectedTv = [
   `https://t7/${ID}/${SEASON}/${EPISODE}`,
   `https://d0.test/embed/tv/${ID}/${SEASON}/${EPISODE}`,
   `https://t9/${ID}/${SEASON}/${EPISODE}`,
-  `https://t10/${ID}/${SEASON}/${EPISODE}?autoplay=true`,
-  `https://t11/${ID}/${SEASON}/${EPISODE}?theme=6366f1&startAt=15`,
+  `https://t10/${ID}/${SEASON}/${EPISODE}`,
+  `https://t11/${ID}/${SEASON}/${EPISODE}`,
   `https://t12/${ID}&tmdb=1&s=${SEASON}&e=${EPISODE}`,
   `https://t13/${ID}/${SEASON}/${EPISODE}`,
   `https://t14/${ID}/${SEASON}/${EPISODE}`,
