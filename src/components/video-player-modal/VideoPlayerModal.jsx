@@ -253,6 +253,12 @@ const VideoPlayerModal = ({
                   // is denied, which is why those servers couldn't go
                   // fullscreen while same-origin ones could.
                   allow="autoplay *; encrypted-media *; fullscreen *; picture-in-picture *"
+                  // The page-wide <meta name="referrer" content="no-referrer">
+                  // (for Scenic+ direct-play CDNs) would otherwise apply here,
+                  // and some embeds (vixsrc, Server 14) refuse to load without
+                  // a referrer. Sending just the origin matches what browsers
+                  // send cross-origin by default.
+                  referrerPolicy="origin"
                   title={title}
                   onLoad={() => setIframeLoaded(true)}
                 />
