@@ -9,7 +9,7 @@ import apiConfig from './apiConfig';
 // TMDB directly with the dev key from .env. The dev bundle is only served on
 // localhost and is never deployed, so the key stays out of the public bundle.
 //
-// Set REACT_APP_USE_PROXY=true (and run `vercel dev`) to exercise the real
+// Set REACT_APP_USE_PROXY=true (and serve the build with `npx wrangler pages dev build`) to exercise the real
 // proxy locally instead of the direct fallback.
 const forceProxy = process.env.REACT_APP_USE_PROXY === 'true';
 const useDirect =
