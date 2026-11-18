@@ -1,4 +1,4 @@
-import { server8Domains } from "../constants/constants";
+import { server8Domains, serverMirrors } from "../constants/constants";
 
 // Per-server query suffix appended after the {id}[/{season}/{episode}] path.
 const SUFFIX = {
@@ -35,5 +35,14 @@ export const buildServerUrl = ({
   }
 
   const path = isTv ? `${id}/${season}/${episode}` : `${id}`;
-  return `${base}${path}${SUFFIX[index] || ""}`;
+  const url = `${base}${path}${SUFFIX[index] || ""}`;
+
+  // Mirror 0 is the configured base; later ones swap in an alternate host.
+  const altHost = mirrorIndex > 0 && serverMirrors[index]?.[mirrorIndex - 1];
+  if (altHost && base) {
+    const u = new URL(url);
+    u.host = altHost;
+    return u.toString();
+  }
+  return url;
 };

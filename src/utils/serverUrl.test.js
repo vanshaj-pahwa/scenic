@@ -1,6 +1,7 @@
 // Mock the mirror domains so Server 8 is deterministic.
 jest.mock("../constants/constants", () => ({
   server8Domains: ["d0.test", "d1.test", "d2.test", "d3.test"],
+  serverMirrors: { 6: ["alt7.test"] },
 }));
 
 import { buildServerUrl } from "./serverUrl";
@@ -112,5 +113,23 @@ describe("Server 8 mirror rotation", () => {
     expect(
       buildServerUrl({ mediaType: "movie", index: 7, id: ID, mirrorIndex: 99 })
     ).toBe(`https://d0.test/embed/movie/${ID}`);
+  });
+});
+
+describe("Server 7 host mirrors", () => {
+  test("mirror 0 and -1 use the configured base", () => {
+    for (const mirrorIndex of [-1, 0]) {
+      expect(buildServerUrl({ mediaType: "movie", index: 6, id: ID, mirrorIndex })).toBe(`https://m7/${ID}`);
+    }
+  });
+
+  test("mirror 1 swaps in the alternate host, keeping the path (tv)", () => {
+    expect(
+      buildServerUrl({ mediaType: "tv", index: 6, id: ID, season: SEASON, episode: EPISODE, mirrorIndex: 1 })
+    ).toBe(`https://alt7.test/${ID}/${SEASON}/${EPISODE}`);
+  });
+
+  test("an out-of-range mirror falls back to the configured base", () => {
+    expect(buildServerUrl({ mediaType: "movie", index: 6, id: ID, mirrorIndex: 5 })).toBe(`https://m7/${ID}`);
   });
 });
